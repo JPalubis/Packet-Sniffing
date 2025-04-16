@@ -22,5 +22,19 @@ def get_mac_address(bytes_address):
     bytes_str = map('{:02x}'.format, bytes_address)
     return ':'.join(bytes_str).upper()
 
+# Unpack IPv4 packet
+def ipv4_packet(data):
+    version_header_len = data[0]
+    version = version_header_len >> 4
+    header_length = (version_header_len & 15) * 4 # Need the header length as it determines 
+    # where the data starts
+    time_to_live, protocol, source, target = struct.unpack('! 8x B B 2x 4s 4s', data[:20]) 
+    # The argument in the "unpack" is the format the data will be in
+    return version, header_length, time_to_live, protocol, ipv4(source), ipv4(target), data[header_length:]
+
+# Used to return properly formatted IPv4 address
+def ipv4(address):
+    return '.'.join(map(str, address))
+
 
 main()
