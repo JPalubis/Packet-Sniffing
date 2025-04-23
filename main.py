@@ -1,6 +1,6 @@
 import socket
 import struct
-import textwrap
+from textwrap import wrap
 
 def main():
     connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
@@ -64,6 +64,16 @@ def tcp_segment(data):
 def udp_segment(data):
     source_port, destination_port, size = struct.unpack('! H H 2x H', data[:8])
     return source_port, destination_port, size, data[8:]
+
+# Need to format all the incoming data to make it more human readable as the data can appear
+# to be too long
+def format_mult_line(prefix, string, size=80):
+    size -= len(prefix)
+    if isinstance(string, bytes):
+        string = ''.join(r'\x{:02x}'.format(byte) for byte in string)
+        if size % 2:
+            size -= 1
+    return '\n'.join([prefix + line for line in wrap(string, size)])
 
 
 main()
