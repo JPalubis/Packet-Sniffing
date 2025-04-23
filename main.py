@@ -2,6 +2,18 @@ import socket
 import struct
 from textwrap import wrap
 
+
+# Need tabs to make the ethernet display more human legible
+TAB1 = '\t - '
+TAB2 = '\t\t - '
+TAB3 = '\t\t\t - '
+TAB4 = '\t\t\t\t - '
+
+DATA_TAB1 = '\t '
+DATA_TAB2 = '\t\t  '
+DATA_TAB3 = '\t\t\t '
+DATA_TAB4 = '\t\t\t\t '
+
 def main():
     connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
