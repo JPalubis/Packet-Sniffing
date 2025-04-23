@@ -23,6 +23,22 @@ def main():
         print("\nEthernet Frame:")
         print(f"Destination: {destination_mac}, Source: {source_mac}, Protocol: {ethernet_protocol}")
 
+        # Regular internet traffic
+        if ethernet_frame == 8:
+            (version, header_length, time_to_live, protocol, source, target, data) = ipv4_packet(data)
+            print(TAB1 + 'IPv4 Packet:')
+            print(TAB2 + f'Version: {version}, Header Length: {header_length}, TTL: {time_to_live} \
+                  Protocol: {protocol}, Source: {source}, Target: {target}')
+            
+            # For ICMP:
+            if protocol == 1:
+                icmp_type, code, checksum, data = icmp_packet(data)
+                print(TAB1 + 'ICMP Packet:')
+                print(TAB2 + f'Type: {icmp_type}, Code: {code}, Checksum: {checksum}')
+                print(TAB2 + 'Data:')
+                print(format_mult_line(DATA_TAB3, data))
+
+
 # Unpack ethernet frame
 def ethernet_frame(data):
     # The sender and receiver in the ethernet frame are 6 bytes, and the TYPE is 2 bytes
