@@ -27,16 +27,40 @@ def main():
         if ethernet_frame == 8:
             (version, header_length, time_to_live, protocol, source, target, data) = ipv4_packet(data)
             print(TAB1 + 'IPv4 Packet:')
-            print(TAB2 + f'Version: {version}, Header Length: {header_length}, TTL: {time_to_live} \
+            print(TAB2 + f'Version: {version}, Header Length: {header_length}, TTL: {time_to_live}, \
                   Protocol: {protocol}, Source: {source}, Target: {target}')
             
-            # For ICMP:
+            # ICMP:
             if protocol == 1:
                 icmp_type, code, checksum, data = icmp_packet(data)
                 print(TAB1 + 'ICMP Packet:')
                 print(TAB2 + f'Type: {icmp_type}, Code: {code}, Checksum: {checksum}')
                 print(TAB2 + 'Data:')
                 print(format_mult_line(DATA_TAB3, data))
+            # TCP
+            elif protocol == 6:
+                source_port, destination_port, sequence, acknowledgement, flag_urg, flag_ack, \
+                    flag_psh, flag_rst, flag_syn, flag_fin, data = tcp_segment(data)
+                print(TAB1 + 'TCP Segment:')
+                print(TAB2 + f'Source Port: {source_port}, Destination Port: {destination_port}, \
+                      Sequence: {sequence}, Acknowledgement: {acknowledgement}, Flags:')
+                print(TAB3 + f'URG: {flag_urg}, ACK: {flag_ack}, PSH: {flag_psh}, RST: {flag_rst}, \
+                      SYN: {flag_syn}, FIN: {flag_fin}')
+                print(TAB2 + 'Data:')
+                print(format_mult_line(DATA_TAB3, data))
+            # UDP
+            elif protocol == 17:
+                source_port, destination_port, size, data = udp_segment(data)
+                print(TAB1 + 'UDP Segment:')
+                print(TAB2 + f'Source Port: {source_port}, Destination Port: {destination_port}, \
+                      Length: {size}')
+            # Other
+            else:
+                print(TAB1: 'Data:')
+                print(format_mult_line(DATA_TAB2, data))
+        else:
+            print('Data:')
+            print(format_mult_line(DATA_TAB1, data))
 
 
 # Unpack ethernet frame
@@ -58,7 +82,8 @@ def ipv4_packet(data):
     # where the data starts
     time_to_live, protocol, source, target = struct.unpack('! 8x B B 2x 4s 4s', data[:20]) 
     # The argument in the "unpack" is the format the data will be in
-    return version, header_length, time_to_live, protocol, ipv4(source), ipv4(target), data[header_length:]
+    return version, header_length, time_to_live, protocol, ipv4(source), \
+        ipv4(target), data[header_length:]
 
 # Used to return properly formatted IPv4 address
 def ipv4(address):
@@ -87,7 +112,8 @@ def tcp_segment(data):
     flag_syn = (offset_reserved_flags & 2) >> 1
     flag_fin = offset_reserved_flags & 1
 
-    return source_port, destination_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
+    return source_port, destination_port, sequence, acknowledgement, flag_urg, flag_ack, \
+        flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
 
 def udp_segment(data):
     source_port, destination_port, size = struct.unpack('! H H 2x H', data[:8])
