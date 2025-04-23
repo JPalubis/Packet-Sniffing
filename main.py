@@ -61,5 +61,9 @@ def tcp_segment(data):
 
     return source_port, destination_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
 
+def udp_segment(data):
+    source_port, destination_port, size = struct.unpack('! H H 2x H', data[:8])
+    return source_port, destination_port, size, data[8:]
+
 
 main()
