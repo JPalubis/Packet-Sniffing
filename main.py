@@ -56,7 +56,7 @@ def main():
                       Length: {size}')
             # Other
             else:
-                print(TAB1: 'Data:')
+                print(TAB1 + 'Data:')
                 print(format_mult_line(DATA_TAB2, data))
         else:
             print('Data:')
