@@ -37,4 +37,29 @@ def ipv4(address):
     return '.'.join(map(str, address))
 
 
+# We are only going to unpack ICMP and TCP protocols as they are the vast majority of protocols
+# that I am working with
+
+def icmp_packet(data):
+    icmp_type, code, checksum = struct.unpack('! B B H', data[:4])
+    return icmp_type, code, checksum, data[4:]
+
+def tcp_segment(data):
+    (source_port, destination_port, sequence, acknowledgement, 
+     offset_reserved_flags) = struct.unpack('! H H L L H', data[:14])
+    # We need to bitshift the TCP chunk (offset, reserved, flags) enough to get the 'offset' portion.
+    # The chunk is 16 bits long, so we need to bitshift it by 12, and myltiply it by 4 to convert 
+    # the WORDS to bytes, since the array is indexed in bytes
+    offset = (offset_reserved_flags >> 12) * 4
+
+    flag_urg = (offset_reserved_flags & 32) >> 5
+    flag_ack = (offset_reserved_flags & 16) >> 4
+    flag_psh = (offset_reserved_flags & 8) >> 3
+    flag_rst = (offset_reserved_flags & 4) >> 2
+    flag_syn = (offset_reserved_flags & 2) >> 1
+    flag_fin = offset_reserved_flags & 1
+
+    return source_port, destination_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
+
+
 main()
