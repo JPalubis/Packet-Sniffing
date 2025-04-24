@@ -44,3 +44,26 @@ class TestPacketSniffer(unittest.TestCase):
     def test_ethernet_frame_short(self):
         with self.assertRaises(struct.error):
             ethernet_frame(b'\x00' * 13) # This should be too short
+    
+
+    # IPv4 packet tests
+    def test_ipv4_packet(self):
+        version_ihl, dscp_ecn, total_length, identification, flags_frag_offset = 0x45, 0, 20, 0, 0
+        ttl, protocol, checksum = 64, 6, 0
+        source_ip = b'\xc0\xa8\x01\x01' # 192.168.1.1
+        destination_ip = b'\xc0\xa8\x01\x02' # 192.168.1.2
+        payload = b''
+
+        ip_header = struct.pack('!BBHHHBBH4s4s', version_ihl, dscp_ecn, total_length, 
+                                identification, flags_frag_offset, ttl, protocol, checksum, 
+                                source_ip, destination_ip)
+        
+        verion, hlen, ttl, proto, source, destination, data = ipv4_packet(ip_header + payload)
+
+        self.assertEqual(verion, 4)
+        self.assertEqual(hlen, 20)
+        self.assertEqual(ttl, 64)
+        self.assertEqual(proto, 6)
+        self.assertEqual(source, '192.168.1.1')
+        self.assertEqual(destination, '192.168.1.2')
+        self.assertEqual(data, payload)
