@@ -24,3 +24,23 @@ class TestPacketSniffer(unittest.TestCase):
         data = 'A' * 100
         result = format_mult_line('', data, size = 20)
         self.assertTrue(all(len(line) <= 20 for line in result.split('\n')))
+    
+
+    # Ethernet frame tests
+    def test_ethernet_frame(self):
+        destination_mac = b'\xaa\xaa\xaa\xaa\xaa\xaa'
+        source_mac = b'\xbb\xbb\xbb\xbb\xbb\xbb'
+        protocol = 0x0800
+        payload = b'\x00' * 46 # This is the minimum ethernet payload
+
+        frame = destination_mac + source_mac + struct.pack('!H', protocol) + payload
+        d_mac, s_mac, proto, data = ethernet_frame(frame)
+
+        self.assertEqual(d_mac, 'AA:AA:AA:AA:AA:AA')
+        self.assertEqual(s_mac, 'BB:BB:BB:BB:BB:BB')
+        self.assertEqual(proto, 0x0800)
+        self.assertEqual(data, payload)
+    
+    def test_ethernet_frame_short(self):
+        with self.assertRaises(struct.error):
+            ethernet_frame(b'\x00' * 13) # This should be too short
