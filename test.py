@@ -67,3 +67,12 @@ class TestPacketSniffer(unittest.TestCase):
         self.assertEqual(source, '192.168.1.1')
         self.assertEqual(destination, '192.168.1.2')
         self.assertEqual(data, payload)
+    
+    def test_ipv4_packet_with_options(self):
+        version_ihl = 0x46 #Version 4, IHL 6 (24 bytes)
+        ip_header = struct.pack('!BBHHHBBH4s4s4s', version_ihl, 0, 24, 0, 0, 64, 6, 0, 
+                                b'\xc0\xa8\x01\x01', b'\xc0\xa8\x01\x02', b'\x00\x00\x00\x00')
+        
+        version, hlen, _, _, _, _, _ = ipv4_packet(ip_header)
+        self.assertEqual(version, 4)
+        self.assertEqual(hlen, 24)
