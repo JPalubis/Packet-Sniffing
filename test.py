@@ -127,3 +127,18 @@ class TestPacketSniffer(unittest.TestCase):
         self.assertEqual(ack_flag, 1)
         self.assertEqual(syn, 1)
         self.assertEqual(fin, 0)
+    
+
+    # UDP segment tests
+    def test_udp_segment(self):
+        source_port, destination_port, length, payload = 12345, 53, 12, b'\x00\x01\x02\x03'
+
+        udp_header = struct.pack('!HHHH', source_port, destination_port, length, 0) # 0 is the checksum
+        packet = udp_header + payload
+
+        s_port, d_port, size, data = udp_segment(packet)
+
+        self.assertEqual(s_port, 12345)
+        self.assertEqual(d_port, 53)
+        self.assertEqual(size, 12)
+        self.assertEqual(data, payload)
