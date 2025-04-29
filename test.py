@@ -76,3 +76,17 @@ class TestPacketSniffer(unittest.TestCase):
         version, hlen, _, _, _, _, _ = ipv4_packet(ip_header)
         self.assertEqual(version, 4)
         self.assertEqual(hlen, 24)
+    
+
+    # ICMP packet tests
+    def test_icmp_packet(self):
+        icmp_type, code, checksum, payload = 8, 0, 12345, b'\x00\x01\x02\x03'
+        icmp_header = struct.pack('!BBH', icmp_type, code, checksum)
+        packet = icmp_header + payload
+
+        type_, code_, checksum_, data = icmp_packet(packet)
+
+        self.assertEqual(type_, 8)
+        self.assertEqual(code_, 0)
+        self.assertEqual(checksum_, 12345)
+        self.assertEqual(data, payload)
