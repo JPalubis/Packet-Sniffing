@@ -90,3 +90,40 @@ class TestPacketSniffer(unittest.TestCase):
         self.assertEqual(code_, 0)
         self.assertEqual(checksum_, 12345)
         self.assertEqual(data, payload)
+    
+
+    # TCP segment tests
+    def test_tcp_segment(self):
+        source_port, destination_port, sequence_num, acknowledge_num = 12345, 80, 1000, 2000
+        data_offset_res_flags = 0x5000
+        window, checksum, urgent_ptr = 8192, 0, 0
+        payload = b'GET / HTTP/1.1\r\n'
+
+        tcp_header = struct.pack('!HHLLHHHH', source_port, destination_port, sequence_num, 
+                                 acknowledge_num, data_offset_res_flags, window, checksum, 
+                                 urgent_ptr, payload)
+        
+        (s_port, d_port, seq, ack, urg, ack_flag, psh, rst, syn, fin, data) = tcp_segment(tcp_header + payload)
+
+        self.assertEqual(s_port, 12345)
+        self.assertEqual(d_port, 80)
+        self.assertEqual(seq, 1000)
+        self.assertEqual(ack, 2000)
+        self.assertEqual(urg, 0)
+        self.assertEqual(ack_flag, 0)
+        self.assertEqual(psh, 0)
+        self.assertEqual(rst, 0)
+        self.assertEqual(syn, 0)
+        self.assertEqual(fin, 0)
+        self.assertEqual(data, payload)
+    
+    def test_tcp_segment_with_flags(self):
+        # TCP header with SYN + ACK flags
+        data_offset_res_flags = 0x5012 # Data offset by 5, SYN=1 and ACK=1
+
+        tcp_header = struct.pack('!HHLLH', 12345, 80, 1000, 2000, data_offset_res_flags)
+        (_, _, _, _, _, ack_flag, _, _, syn, fin, _) = tcp_segment(tcp_header + b'')
+
+        self.assertEqual(ack_flag, 1)
+        self.assertEqual(syn, 1)
+        self.assertEqual(fin, 0)
