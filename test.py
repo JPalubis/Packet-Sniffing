@@ -142,3 +142,28 @@ class TestPacketSniffer(unittest.TestCase):
         self.assertEqual(d_port, 53)
         self.assertEqual(size, 12)
         self.assertEqual(data, payload)
+    
+    # Integration tests
+    def test_full_ipv4_tcp_packet(self):
+        ethernet_header = (
+            b'\xaa\xaa\xaa\xaa\xaa\xaa' # Destination mac
+            b'\xbb\xbb\xbb\xbb\xbb\xbb' # Source mac
+            b'\x08\x00' # IPv4 protocol
+        )
+
+        ip_header = struct.pack('!BBHHHBBH4s4s', 0x45, 0, 40, 0, 0, 64, 6, 0,
+                                b'\xc0\xa8\x01\x01', b'\xc0\xa8\x01\x02')
+        tcp_header = struct.pack('!HHLLHHHH', 12345, 80, 1000, 2000, 0x5010, 8192, 0, 0) # ACK flag set
+        payload = b'GET / HTTP/1.1\r\n'
+        packet = ethernet_header + ip_header + tcp_header + payload
+
+        # Test ethernet frame parsing
+        d_mac, s_mac, protocol, data = ethernet_frame(packet)
+        self.assertEqual(protocol, 0x0800)
+
+        # Test IPv4 Parsing
+        version, hlen, _, ip_protocol, source, destination, data = ipv4_packet(data)
+        self.assertEqual(version, 4)
+        self.assertEqual(ip_protocol, 6)
+        self.assertEqual(source, '192.168.1.1')
+        self.assertEqual(destination, '192.168.1.2')
