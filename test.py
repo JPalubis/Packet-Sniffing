@@ -167,3 +167,10 @@ class TestPacketSniffer(unittest.TestCase):
         self.assertEqual(ip_protocol, 6)
         self.assertEqual(source, '192.168.1.1')
         self.assertEqual(destination, '192.168.1.2')
+
+        # Test TCP parsing
+        s_port, d_port, _, _, _, ack_flag, _, _, _, _, data = tcp_segment(data)
+        self.assertEqual(s_port, 12345)
+        self.assertEqual(d_port, 80)
+        self.assertEqual(ack_flag, 1)
+        self.assertEqual(data, payload)
