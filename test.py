@@ -174,3 +174,31 @@ class TestPacketSniffer(unittest.TestCase):
         self.assertEqual(d_port, 80)
         self.assertEqual(ack_flag, 1)
         self.assertEqual(data, payload)
+    
+    @patch('main.socket.socket')
+    def test_main_loop(self, mock_socket):
+        mock_connection = MagicMock()
+        mock_socket.return_value = mock_connection
+
+        # Creating a test packet
+        ethernet_header = (
+            b'\xaa\xaa\xaa\xaa\xaa\xaa' # Destination mac
+            b'\xbb\xbb\xbb\xbb\xbb\xbb' # Source mac
+            b'\x08\x00' # IPv4 protocol
+        )
+        ip_header = struct.pack('!BBHHHBBH4s4s', 0x45, 0, 20, 0, 0, 64, 1, 0,
+                                b'\xc0\xa8\x01\x01', b'\xc0\xa8\x01\x01')
+        icmp_pckt = struct.pack('!BBH', 8, 0, 0) + b'payload'
+
+        test_packet = ethernet_header + ip_header + icmp_pckt
+
+        mock_connection.recvfrom.return_value = (test_packet, ('eth0', 0))
+
+        import main
+        with patch('main.print') as mock_print:
+            main.main()
+            mock_print.assert_any_call("\nEthernet Frame")
+            mock_print.assert_any_call("Destination: AA:AA:AA:AA:AA:AA, Source: BB:BB:BB:BB:BB:BB, Protocol: 2048")
+
+if __name__ == "__main__":
+    unittest.main()
